@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile Scraper</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .logo svg { width: 28px; height: 28px; }
+
+    .logo h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0d0d0d;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #0d0d0d;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus { border-color: #1da1f2; }
+
+    input[type="text"]::placeholder { color: #9ca3af; }
+
+    button {
+      padding: 12px 20px;
+      background: #1da1f2;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    button:hover { background: #1a91da; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .status {
+      margin-top: 20px;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .status.loading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .status.success {
+      display: block;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status.error {
+      display: block;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid #bfdbfe;
+      border-top-color: #1d4ed8;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .profile-name {
+      font-weight: 700;
+      font-size: 16px;
+      color: #0d0d0d;
+    }
+
+    .profile-handle {
+      font-size: 13px;
+      color: #1da1f2;
+      margin-bottom: 8px;
+    }
+
+    .profile-bio {
+      font-size: 13px;
+      color: #4b5563;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .profile-stats {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .profile-stats span strong {
+      color: #0d0d0d;
+      font-weight: 700;
+    }
+
+    .success-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #15803d;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="#1da1f2"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      <h1>Profile Scraper</h1>
+    </div>
+
+    <label for="username">Twitter / X Username</label>
+    <div class="input-row">
+      <input
+        id="username"
+        type="text"
+        placeholder="@elonmusk"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      />
+      <button id="btn" onclick="runScrape()">Scrape</button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script>
+    // ← Replace this with your Render API URL after deploying
+    const API_URL = "YOUR_RENDER_API_URL";
+
+    const input  = document.getElementById("username");
+    const btn    = document.getElementById("btn");
+    const status = document.getElementById("status");
+
+    input.addEventListener("keydown", e => { if (e.key === "Enter") runScrape(); });
+
+    function fmt(n) {
+      if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+      if (n >= 1_000)     return (n / 1_000).toFixed(1) + "K";
+      return String(n);
+    }
+
+    async function runScrape() {
+      const username = input.value.trim().replace(/^@/, "");
+      if (!username) { input.focus(); return; }
+
+      btn.disabled = true;
+      status.className = "status loading";
+      status.innerHTML = `<div class="spinner"></div> Scraping @${username} — this may take ~20 seconds…`;
+
+      try {
+        const res = await fetch(`${API_URL}/scrape`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          status.className = "status error";
+          status.textContent = data.error || "Something went wrong.";
+        } else {
+          const p = data.profile;
+          status.className = "status success";
+          status.innerHTML = `
+            <div class="success-tag">✓ Saved to Airtable</div>
+            <div class="profile-name">${p.display_name}</div>
+            <div class="profile-handle">@${p.username}</div>
+            ${p.bio ? `<div class="profile-bio">${p.bio}</div>` : ""}
+            <div class="profile-stats">
+              <span><strong>${fmt(p.followers)}</strong> Followers</span>
+              <span><strong>${fmt(p.following)}</strong> Following</span>
+            </div>
+          `;
+          input.value = "";
+        }
+      } catch (err) {
+        status.className = "status error";
+        status.textContent = "Could not reach the API. Is the server running?";
+      }
+
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>

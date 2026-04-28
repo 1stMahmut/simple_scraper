@@ -2,6 +2,8 @@
 
 A full-stack automation tool that scrapes public Twitter/X profiles via API, stores structured data in Airtable, and displays a live records table through a deployed web interface.
 
+![Profile Scraper Screenshot](screenshot.png)
+
 **Live:**
 - Frontend — deployed on [Vercel](https://vercel.com)
 - Backend API — deployed on [Render](https://simple-scraper-6qtn.onrender.com/health)

@@ -107,12 +107,10 @@ class TwitterScraper:
                 logger.info(f"Extracted {len(profile.recent_tweets)} recent tweets")
 
             except PlaywrightTimeout:
-                logger.warning("Page timed out — Twitter may have blocked or required login.")
-                logger.info("Falling back to demo data for demonstration purposes.")
-                profile = self._demo_profile(username)
+                raise RuntimeError("Twitter timed out — it may be blocking the scraper or requiring login.")
             except Exception as e:
                 logger.error(f"Scrape error: {e}")
-                profile = self._demo_profile(username)
+                raise
             finally:
                 browser.close()
 

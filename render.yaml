@@ -2,9 +2,11 @@ services:
   - type: web
     name: scraper-api
     env: python
-    buildCommand: pip install -r requirements.txt && playwright install-deps chromium
-    startCommand: playwright install chromium && gunicorn app:app --timeout 120
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --timeout 120
     envVars:
+      - key: RAPIDAPI_KEY
+        sync: false
       - key: AIRTABLE_API_KEY
         sync: false
       - key: AIRTABLE_BASE_ID

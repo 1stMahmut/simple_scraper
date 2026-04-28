@@ -6,7 +6,11 @@ from flask_cors import CORS
 from dataclasses import asdict
 
 from twitter_scraper import TwitterScraper
-from airtable_sender import AirtableSender
+from airtable_sender import AirtableSender, AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE
+
+import json
+import urllib.request
+import urllib.parse
 
 app = Flask(__name__)
 CORS(app)
@@ -45,6 +49,22 @@ def scrape():
             },
         })
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/records")
+def records():
+    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{urllib.parse.quote(AIRTABLE_TABLE)}?sort%5B0%5D%5Bfield%5D=Name&sort%5B0%5D%5Bdirection%5D=asc"
+    req = urllib.request.Request(
+        url,
+        headers={"Authorization": f"Bearer {AIRTABLE_API_KEY}"},
+    )
+    try:
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read())
+        rows = [r["fields"] for r in data.get("records", [])]
+        return jsonify(rows)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

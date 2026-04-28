@@ -32,7 +32,6 @@ class AirtableSender:
 
         fields = {
             "Name":          profile.get("username", ""),
-            "Username":      profile.get("username", ""),
             "Display Name":  profile.get("display_name", ""),
             "Bio":           profile.get("bio", ""),
             "Location":      profile.get("location", ""),
@@ -41,8 +40,6 @@ class AirtableSender:
             "Followers":     profile.get("followers", 0),
             "Following":     profile.get("following", 0),
             "Tweets Count":  profile.get("tweets_count", 0),
-            "Verified":      profile.get("verified", False),
-            "Avatar URL":    profile.get("avatar_url", ""),
             "Recent Tweets": tweets_text,
         }
 
@@ -66,6 +63,6 @@ class AirtableSender:
         except urllib.error.HTTPError as e:
             body = e.read().decode()
             logger.error(f"Airtable error {e.code}: {body}")
-            raise
+            raise RuntimeError(f"Airtable {e.code}: {body}") from e
 
 

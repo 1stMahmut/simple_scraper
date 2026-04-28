@@ -134,6 +134,46 @@
     .profile-stats { display: flex; gap: 16px; font-size: 13px; color: #6b7280; }
     .profile-stats span strong { color: #0d0d0d; font-weight: 700; }
 
+    .tweets-list {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tweet-item {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .tweet-text {
+      font-size: 13px;
+      color: #0d0d0d;
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+
+    .tweet-meta {
+      display: flex;
+      gap: 14px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .tweet-meta span { display: flex; align-items: center; gap: 4px; }
+
+    .tweets-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      margin-top: 14px;
+      margin-bottom: 6px;
+    }
+
     .success-tag {
       display: inline-flex;
       align-items: center;
@@ -295,6 +335,22 @@
         } else {
           const p = data.profile;
           status.className = "status success";
+          const tweetsHtml = p.recent_tweets && p.recent_tweets.length ? `
+            <div class="tweets-title">Recent Tweets</div>
+            <div class="tweets-list">
+              ${p.recent_tweets.map(t => `
+                <div class="tweet-item">
+                  <div class="tweet-text">${t.text}</div>
+                  <div class="tweet-meta">
+                    <span>♥ ${fmt(t.likes)}</span>
+                    <span>↺ ${fmt(t.retweets)}</span>
+                    <span>💬 ${fmt(t.replies)}</span>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          ` : "";
+
           status.innerHTML = `
             <div class="success-tag">✓ Saved to Airtable</div>
             <div class="profile-name">${p.display_name}</div>
@@ -304,6 +360,7 @@
               <span><strong>${fmt(p.followers)}</strong> Followers</span>
               <span><strong>${fmt(p.following)}</strong> Following</span>
             </div>
+            ${tweetsHtml}
           `;
           input.value = "";
           loadTable();

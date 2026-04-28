@@ -46,6 +46,15 @@ def scrape():
                 "followers": profile.followers,
                 "following": profile.following,
                 "bio": profile.bio,
+                "recent_tweets": [
+                    {
+                        "text": t.text,
+                        "likes": t.likes,
+                        "retweets": t.retweets,
+                        "replies": t.replies,
+                    }
+                    for t in profile.recent_tweets
+                ],
             },
         })
 
